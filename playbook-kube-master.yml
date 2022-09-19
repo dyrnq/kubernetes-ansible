@@ -1,4 +1,4 @@
-- hosts: "{{ run | default('kube_node')}}"
+- hosts: "{{ run | default('kube_master')}}"
   gather_facts: true
   roles:
     - verify
