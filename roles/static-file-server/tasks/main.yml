@@ -15,7 +15,7 @@
 
 - name: "Create static-file-server data directory"
   file:
-    path: "{{ static.certs.path }}"
+    path: "{{ static.root }}"
     # owner: etcd
     # group: etcd
     # mode: 0700
