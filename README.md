@@ -41,7 +41,7 @@ ansible-playbook -i inventory/hosts  playbook-kube-master.yml
 ### kube-worker
 ```bash
 ansible-playbook -i inventory/hosts  playbook-kube-worker.yml
-## Specify kubernetes version number and cri implementation
+## Specify kubernetes version number and cri implementation on worker-2
 ansible-playbook -i inventory/hosts -e "run=worker-2" -e "cri=cri-o" -e "kubernetes_ver=v1.24.4" playbook-kube-worker.yml
 ```
 ### kube-addons
