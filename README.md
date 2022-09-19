@@ -8,7 +8,7 @@ Support docker(ctr-dockerd)、containerd、cri-o.
 ### prepare
 
 ```bash
-vagrant up etcd-1 etcd-2 etcd-3 master-1 master-2 master-3
+vagrant up etcd-1 etcd-2 etcd-3 master-1 master-2 master-3 worker-1 worker-2 worker-3
 ```
 
 ```bash
@@ -37,7 +37,7 @@ ansible-playbook -i inventory/hosts  playbook-kube-master.yml
 ### kube-worker
 ```bash
 ansible-playbook -i inventory/hosts  playbook-kube-worker.yml
-## Specify version number and ctr implementation
+## Specify kubernetes version number and cri implementation
 ansible-playbook -i inventory/hosts -e "run=worker-2" -e "cri=cri-o" -e "kubernetes_ver=v1.24.4" playbook-kube-worker.yml
 ```
 ### kube-addons
