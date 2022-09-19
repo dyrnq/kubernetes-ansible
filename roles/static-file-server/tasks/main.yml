@@ -1,0 +1,34 @@
+---
+- name: Download static-file-server using get_url
+  #become: yes
+  block:
+    - name: Download static-file-server using get_url
+      get_url:
+        url: https://github.com/halverneus/static-file-server/releases/download/v1.8.8/static-file-server-v1.8.8-linux-amd64
+        dest: /usr/local/bin/static-file-server
+        mode: 0755
+        # group: root
+        # owner: root
+        use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+
+- name: "Create static-file-server data directory"
+  file:
+    path: "{{ static.certs.path }}"
+    # owner: etcd
+    # group: etcd
+    # mode: 0700
+    state: directory
+
+- name: "Generate static-file-server configure"
+  template:
+    src: "static-file-server.service.j2"
+    dest: "/lib/systemd/system/static-file-server.service"
+
+- name: enable --now static-file-server
+  ansible.builtin.systemd:
+    name: static-file-server
+    state: started
+    enabled: yes
+    daemon_reload: yes

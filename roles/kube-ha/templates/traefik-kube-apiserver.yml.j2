@@ -1,0 +1,16 @@
+tcp:
+  routers:
+    kube-apiserver:
+      entryPoints:
+        - "kubernetes"
+      rule: "HostSNI(`*`)"
+      service: kube-apiserver
+      tls:
+        passthrough: true
+  services:
+    kube-apiserver:
+      loadBalancer:
+        servers:
+{% for item in groups['kube_master'] %}
+        - address: "{{hostvars[item].ansible_host}}:6443"
+{% endfor %}

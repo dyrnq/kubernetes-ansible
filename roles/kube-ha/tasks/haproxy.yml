@@ -1,0 +1,20 @@
+---
+- name: "Install haproxy"
+  package:
+    name:
+      - "haproxy"
+    state: present
+    update_cache: yes
+  tags: install_layer4
+
+- name: Create haproxy.cfg
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Enable haproxy proxy
+  systemd:
+    name: "haproxy"
+    state: started
+    enabled: yes
+    daemon_reload: yes

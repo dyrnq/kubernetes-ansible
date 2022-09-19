@@ -1,0 +1,56 @@
+---
+- name: Download cri-o
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/cri-o/{{ crio_ver }}/cri-o.amd64.{{ crio_ver }}.tar.gz"
+    dest: "/tmp"
+  tags: install_crio
+
+- name: Create cri-o directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/crio/crio.conf.d/"
+    - "/etc/containers"
+    - "/var/lib/crio"
+  tags: install_crio  
+
+- name: "unarchive cri-o"
+  unarchive:
+    src: "/tmp/cri-o.amd64.{{ crio_ver }}.tar.gz"
+    dest: "/tmp"
+    remote_src: yes
+    # extra_opts:
+    #   - --strip-components=1
+  tags: install_crio
+
+- name: "Install cri-o"
+  shell: |
+    if [ -f install ]; then
+      bash install
+    else
+      make install
+    fi
+    cat /dev/null > /etc/crio/crio.conf
+    [ -f /etc/cni/net.d/10-crio-bridge.conf ] && rm -rf /etc/cni/net.d/10-crio-bridge.conf;
+  tags: install_crio
+  args:
+    executable: /bin/bash
+    chdir: /tmp/cri-o
+
+- name: Create /etc/containers/registries.conf
+  template:
+    src: registries.conf.j2
+    dest: /etc/containers/registries.conf
+
+- name: Create 01-pause-image.conf
+  template:
+    src: 01-pause-image.conf.j2
+    dest: /etc/crio/crio.conf.d/01-pause-image.conf
+
+- name: Enable crio
+  systemd:
+    name: crio
+    state: started
+    enabled: yes
+    daemon_reload: yes

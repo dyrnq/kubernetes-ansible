@@ -1,0 +1,17 @@
+---
+- name: Download cfssl using get_url
+  block:
+    - name: Download cfssl using get_url
+      get_url:
+        url: https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_ver }}/cfssl_{{ cfssl_ver }}_linux_amd64
+        dest: /usr/local/bin/cfssl
+        mode: 0755
+        use_proxy: yes
+    - name: Download cfssljson using get_url
+      get_url:
+        url: https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_ver }}/cfssljson_{{ cfssl_ver }}_linux_amd64
+        dest: /usr/local/bin/cfssljson
+        mode: 0755
+        use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"

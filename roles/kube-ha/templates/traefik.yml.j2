@@ -1,0 +1,20 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+log:
+  level: INFO
+  format: common
+api:
+  dashboard: true
+  insecure: true
+  debug: true
+ping: {}
+accessLog: {}
+entryPoints:
+  kubernetes:
+    address: ':{{ kubernetes.lb.port }}'
+providers:
+  file:
+    watch: true
+    directory: /etc/traefik/file
+    debugLogGeneratedTemplate: true

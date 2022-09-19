@@ -1,0 +1,103 @@
+---
+- name: "Create etcd user group"
+  group:
+    name: etcd
+    gid: 201
+    system: yes
+
+- name: "Create etcd user"
+  user:
+    name: etcd
+    uid: 201
+    group: etcd
+    comment: "Etcd User"
+    create_home: no
+    home: "{{ etcd.data_dir }}"
+    shell: /sbin/nologin
+    system: yes
+
+- name: "Download etcd"
+  unarchive:
+    src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/etcd/{{etcd_ver}}/etcd-{{etcd_ver}}-linux-amd64.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+  tags: install_etcd
+
+- name: "Install etcd"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ bindest }}"
+    owner: etcd
+    group: etcd
+    mode: 0750
+    remote_src: yes
+  with_items:
+    - {src: "/tmp/etcd-{{ etcd_ver }}-linux-amd64/etcd"}
+    - {src: "/tmp/etcd-{{ etcd_ver }}-linux-amd64/etcdctl"}
+    - {src: "/tmp/etcd-{{ etcd_ver }}-linux-amd64/etcdutl"}
+  tags: install_etcd
+
+- name: Create etc directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/etcd"
+    - "/etc/kubernetes/pki/etcd"
+
+
+- name: "Distribution certs"
+  get_url:
+    url: "{{ item.src }}"
+    dest: "/etc/kubernetes/pki/etcd/{{ item.dest }}"
+    owner: etcd
+    group: etcd
+    mode: 0640
+  with_items:
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-ca.pem" , dest: 'ca.crt' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-server.pem" , dest: 'server.crt' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-server-key.pem" , dest: 'server.key' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-peer.pem" , dest: 'peer.crt' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-peer-key.pem" , dest: 'peer.key' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-healthcheck-client.pem" , dest: 'healthcheck-client.crt' }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-healthcheck-client-key.pem" , dest: 'healthcheck-client.key' }
+  tags:
+    - dis_etcd_certs
+    - dis_certs
+
+- name: "Create etcd data directory"
+  file:
+    path: "{{ etcd.data_dir }}"
+    owner: etcd
+    group: etcd
+    mode: 0700
+    state: directory
+
+# https://github.com/etcd-io/etcd/blob/v3.5.4/etcd.conf.yml.sample
+    
+- name: "Generate etcd configure"
+  template:
+    src: "etcd.conf.yml.j2"
+    dest: "/etc/etcd/etcd.conf.yml"
+
+- name: Create etcd unit file
+  template:
+    src: etcd.service.j2
+    dest: /usr/lib/systemd/system/etcd.service
+
+- name: Enable etcd
+  systemd:
+    name: etcd
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Check etcd health status
+  shell: |
+    {{ bindest }}/etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/healthcheck-client.crt --key /etc/kubernetes/pki/etcd/healthcheck-client.key --endpoints {% for item in groups['etcd'] %}https://{{ hostvars[item].ansible_host }}:2379{{ "," if not loop.last else ""}}{% endfor %} endpoint health | grep healthy | wc -l
+  register: r_etcd_health
+  changed_when: no
+
+- name: ETCD's health
+  debug:
+    msg: "{{ r_etcd_health.stdout }}"

@@ -1,0 +1,18 @@
+{
+  "CN": "kube-etcd-peer",
+  "hosts": [
+    "debian",
+{% for item in groups['etcd'] %}
+    "{{ hostvars[item].inventory_hostname }}",
+{% endfor %}
+{% for item in groups['etcd'] %}
+    "{{ hostvars[item].ansible_host }}",
+{% endfor %}
+    "localhost",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  }
+}

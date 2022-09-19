@@ -1,0 +1,38 @@
+[Unit]
+Description=Kubernetes Controller Manager
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-controller-manager \
+  --allocate-node-cidrs=true \
+  --authentication-kubeconfig={{  kubernetes.etc.path }}/controller-manager.conf \
+  --authorization-kubeconfig={{  kubernetes.etc.path }}/controller-manager.conf \
+  --bind-address=127.0.0.1 \
+  --cluster-cidr={{ kubernetes.cluster_pod_cidr}} \
+  --cluster-name=kubernetes \
+  --cluster-signing-cert-file=/etc/kubernetes/pki/ca.crt \
+  --cluster-signing-key-file=/etc/kubernetes/pki/ca.key \
+  --controllers=*,bootstrapsigner,tokencleaner \
+  --cluster-signing-duration=438000h \
+  --feature-gates=RotateKubeletServerCertificate=true \
+  --kubeconfig={{  kubernetes.etc.path }}/controller-manager.conf \
+  --leader-elect=true \
+  --log-dir=/var/log/kubernetes/kube-controller-manager \
+  --logtostderr=false \
+  --node-monitor-grace-period=2m \
+  --node-monitor-period=5s \
+  --pod-eviction-timeout=1m \
+  --requestheader-client-ca-file=/etc/kubernetes/pki/front-proxy-ca.crt \
+  --root-ca-file=/etc/kubernetes/pki/ca.crt \
+  --service-account-private-key-file=/etc/kubernetes/pki/sa.key \
+  --service-cluster-ip-range={{ kubernetes.cluster_svc_cidr }} \
+  --use-service-account-credentials=true \
+  --v={{  kubernetes.loglevel }}
+
+
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

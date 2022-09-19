@@ -1,0 +1,16 @@
+---
+- name: Stop and disable etcd service
+  service:
+    name: etcd
+    enabled: no
+    state: stopped
+  register: etcd_service_result
+
+- name: Delete content & directory
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items:
+    - "{{ etcd.data_dir }}"
+    - "/etc/kubernetes"
+    - "/etc/etcd"

@@ -1,0 +1,12 @@
+---
+- name: Create kube-apiserver unit file
+  template:
+    src: kube-apiserver.service.j2
+    dest: /usr/lib/systemd/system/kube-apiserver.service
+
+- name: Enable kube-apiserver
+  systemd:
+    name: kube-apiserver
+    state: started
+    enabled: yes
+    daemon_reload: yes

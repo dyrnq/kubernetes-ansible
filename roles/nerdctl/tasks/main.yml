@@ -1,0 +1,16 @@
+---
+- name: "Download nerdctl"
+  unarchive:
+    src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/nerdctl/{{nerdctl_ver}}/nerdctl-{{ nerdctl_ver[1:] }}-linux-amd64.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+  tags: install_nerdctl
+
+- name: "install nerdctl binary files"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ bindest }}"
+    remote_src: yes
+    mode: '0755'
+  with_items:
+    - { src: "/tmp/nerdctl" }

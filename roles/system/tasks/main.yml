@@ -1,0 +1,142 @@
+---
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+  when: timezone is defined
+
+- name: Set Hostname
+  when: updata_hostname is true
+  hostname:
+    name: "{{inventory_hostname}}"
+
+- name: "Disable selinux"
+  selinux:
+    state: disabled
+  when:
+    - ansible_os_family in ['RedHat', 'AlmaLinux', 'Rocky']
+
+# - name: "Disable swap"
+#   shell: swapoff -a
+
+# - name: Remove current swaps from fstab
+#   lineinfile:
+#     dest: /etc/fstab
+#     regexp: '(?i)^([^#][\S]+\s+(none|swap)\s+swap.*)'
+#     line: '# \1'
+#     backrefs: yes
+#     state: present
+
+- name: Disable swap
+  shell: "swapoff -a && sysctl -w vm.swappiness=0"
+  ignore_errors: true
+
+- name: Disable swap in fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: "swap"
+    state: absent
+    backup: "yes"
+
+- name: Close firewalld dnsmasq
+  systemd:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  with_items:
+    - firewalld
+    - dnsmasq
+    - apparmor
+  ignore_errors: true
+
+- name: Temporarily shut down SELinux
+  shell: "setenforce 0"
+  failed_when: false
+
+- name: Check that the /etc/selinux/config exists
+  stat:
+    path: /etc/selinux/config
+  register: stat_result
+
+- name: Permanently shut down SELinux
+  lineinfile:
+    dest: /etc/selinux/config
+    regexp: "^SELINUX="
+    line: "SELINUX=disabled"
+  when: stat_result.stat.exists
+
+- name: Try modprobe nf_conntrack_ipv4
+  shell: 'modprobe nf_conntrack_ipv4 || echo "NoFound"'
+  register: NF_CONNTRACK_IPV4
+
+- block:
+    - name: mkdir -p /etc/systemd/system.conf.d
+      file:
+        name: /etc/systemd/system.conf.d
+        state: directory
+
+    - name: Modify the minimum number of open files started by systemd units
+      template:
+        src: 90-systemd.conf.j2
+        dest: /etc/systemd/system.conf.d/90-systemd.conf
+
+- name: "Generate sysctl file"
+  template:
+    src: "90-sysctl.conf.j2"
+    dest: "/etc/sysctl.d/90-sysctl.conf"
+    mode: g=r,o=r
+
+- name: "Generate modules-load file"
+  template:
+    src: "90-modules-load.conf.j2"
+    dest: "/etc/modules-load.d/90-modules-load.conf"
+    mode: g=r,o=r
+
+- name: "Generate security limits file"
+  template:
+    src: "90-limits.conf.j2"
+    dest: "/etc/security/limits.d/90-limits.conf"
+    mode: g=r,o=r
+
+# - name: "Enabled conntrack modlue < 4.19.0"
+#   modprobe:
+#     name: "nf_conntrack_ipv4"
+#     state: present
+#   when: ((ansible_os_family in ['RedHat', 'AlmaLinux', 'Rocky'] and ansible_distribution_major_version != '8') or ansible_os_family in ['Debian']) and ansible_kernel.split('-')[0] is version('4.19.0', '<')
+#   tags: mod
+
+# - name: "Enabled conntrack modlue > 4.19.0"
+#   modprobe:
+#     name: "nf_conntrack"
+#     state: present
+#   when: (ansible_os_family in ['RedHat', 'AlmaLinux', 'Rocky'] and ansible_distribution_major_version == '8') or ansible_kernel.split('-')[0] is version('4.19.0', '>=')
+#   tags: mod
+
+- name: Convert the kernel version to a floating point number
+  set_fact:
+    KERNEL_VER: "{{ ansible_kernel.split('-')[0].split('.')[0]|int + ansible_kernel.split('-')[0].split('.')[1]|int/100 }}"
+  # 5.15.0-47-generic --> 5.15
+
+- name: Convert the kubernetes version to a floating point number
+  set_fact:
+    KUBE_VER: "{{ kubernetes_ver[1:].split('.')[0]|int + kubernetes_ver[1:].split('.')[1]|int/100 }}"
+- name: modprobe
+  modprobe: name={{ item }} state=present
+  with_items:
+    - br_netfilter
+    - ip_vs
+    - ip_vs_rr
+    - ip_vs_wrr
+    - ip_vs_sh
+    - nf_conntrack
+  ignore_errors: true
+
+- name: Enable /etc/sysctl.d/90-sysctl.conf
+  shell: "sysctl -p /etc/sysctl.d/90-sysctl.conf"
+  ignore_errors: true
+
+- name: enable --now systemd-modules-load
+  ansible.builtin.systemd:
+    name: systemd-modules-load
+    state: started
+    enabled: yes
+    daemon_reload: yes

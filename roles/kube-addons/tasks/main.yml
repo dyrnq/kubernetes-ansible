@@ -1,0 +1,30 @@
+---
+- name: Waiting kubectl working
+  shell: kubectl cluster-info 2&>/dev/null
+  register: waiting_for_cluster
+  until: waiting_for_cluster.rc == 0
+  retries: 30
+  delay: 5
+
+- name: label node ontrol-plane
+  shell: |
+    {% for item in groups['kube_master'] %}
+    kubectl label node {{ hostvars[item].inventory_hostname }} node-role.kubernetes.io/master=
+    kubectl label node {{ hostvars[item].inventory_hostname }} node-role.kubernetes.io/control-plane=
+    {% endfor %}
+
+- name: deploy calico
+  shell: |
+    curl -fsSL https://projectcalico.docs.tigera.io/archive/{{ calico_ver }}/manifests/calico.yaml | sed \
+    -e "/value: \"Never\"/a\ \ \ \ \ \ \ \ \ \ \ \ \- name: IP_AUTODETECTION_METHOD\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ value: \"interface={{ iface_name }}\"" \
+    -e "/value: \"Never\"/a\ \ \ \ \ \ \ \ \ \ \ \ \- name: CALICO_IPV4POOL_CIDR\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ value: \"{{ kubernetes.cluster_pod_cidr }}\"" | kubectl apply -f -
+
+- name: deploy coredns
+  shell: |
+    curl -fsSL -O https://github.com/coredns/deployment/raw/master/kubernetes/deploy.sh && \
+    curl -fsSL -O https://github.com/coredns/deployment/raw/master/kubernetes/coredns.yaml.sed && \
+    bash ./deploy.sh -i {{ kubernetes.cluster_dns }} | kubectl apply -f -
+
+- name: deploy kubelet-csr-approver
+  shell: |
+    curl -fsSL https://github.com/dyrnq/dist/raw/main/kubelet-csr-approver/latest/10-deployments.yaml  | kubectl apply -f -

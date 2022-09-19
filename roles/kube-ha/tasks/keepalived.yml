@@ -1,0 +1,20 @@
+---
+- name: "Install keepalived"
+  package:
+    name:
+      - keepalived
+    state: present
+    update_cache: yes
+  tags: install_keepalived
+
+- name: Create keepalived.conf
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: Enable keepalived
+  systemd:
+    name: keepalived
+    state: started
+    enabled: yes
+    daemon_reload: yes

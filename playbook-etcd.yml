@@ -1,0 +1,7 @@
+- hosts: "{{ run | default('etcd')}}"
+  gather_facts: true
+  roles:
+    - verify
+    - system
+    - package
+    - etcd

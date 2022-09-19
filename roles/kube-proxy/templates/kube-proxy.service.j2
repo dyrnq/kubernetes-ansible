@@ -1,0 +1,19 @@
+[Unit]
+Description=Kubernetes Proxy
+Documentation=https://github.com/kubernetes/kubernetes
+After=kubelet.service
+
+
+[Service]
+ExecStart=/usr/bin/kube-proxy \
+  --config=/var/lib/kube-proxy/config.conf \
+  --hostname-override={{  inventory_hostname }} \
+  --logtostderr=false \
+  --log-dir=/var/log/kubernetes/kube-proxy \
+  --v={{  kubernetes.loglevel }}
+
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

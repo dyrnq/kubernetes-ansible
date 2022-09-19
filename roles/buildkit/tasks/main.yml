@@ -1,0 +1,48 @@
+---
+- name: Download buildkit
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/buildkit/{{ buildkit_ver }}/buildkit-{{ buildkit_ver }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+  tags: install_buildkit
+
+- name: Create buildkit directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/systemd/system/buildkit.service.d/"
+
+- name: "Create docker group"
+  group:
+    name: docker
+    gid: 5000
+    system: yes
+
+- name: "Install buildkit"
+  unarchive:
+    src: "/tmp/buildkit-{{ buildkit_ver }}.linux-amd64.tar.gz"
+    dest: "{{ bindest }}"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+  tags: install_buildkit
+
+- name: Create buildkit.service unit files
+  template: 
+    src: buildkit.service.j2
+    dest: /lib/systemd/system/buildkit.service
+
+- name: Create buildkit.socket unit files
+  template: 
+    src: buildkit.socket.j2
+    dest: /lib/systemd/system/buildkit.socket
+
+- name: Enable buildkit
+  systemd:
+    name: buildkit
+    state: started
+    enabled: yes
+    daemon_reload: yes

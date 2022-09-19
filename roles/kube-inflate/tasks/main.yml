@@ -1,0 +1,135 @@
+---
+- name: Download kubernetes
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/kubernetes/{{ kubernetes_ver }}/kubernetes-server-linux-amd64.tar.gz"
+    dest: "/tmp"
+  tags: install_kubernetes
+
+
+- name: Create kubernetes directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/kubernetes/pki/etcd/"
+    - "/var/log/kubernetes/kube-apiserver"
+    - "/var/log/kubernetes/kube-controller-manager"
+    - "/var/log/kubernetes/kube-proxy"
+    - "/var/log/kubernetes/kube-scheduler"
+    - "/var/log/kubernetes/kubelet"
+    - "/var/lib/kubelet/"
+    - "/var/lib/kube-proxy"
+    - "/etc/kubernetes/manifests"
+
+
+- name: "Distribution certs"
+  get_url:
+    url: "{{ item.src }}"
+    dest: "/etc/kubernetes/{{ item.dest }}"
+  with_items:
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/encryption-config.yaml" , dest: "encryption-config.yaml" }
+
+
+
+- name: "Distribution certs"
+  get_url:
+    url: "{{ item.src }}"
+    dest: "/etc/kubernetes/pki/{{ item.dest }}"
+  with_items:
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver-etcd-client.pem" , dest: "apiserver-etcd-client.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver-etcd-client-key.pem" , dest: "apiserver-etcd-client.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver-kubelet-client.pem" , dest: "apiserver-kubelet-client.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver-kubelet-client-key.pem" , dest: "apiserver-kubelet-client.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver.pem" , dest: "apiserver.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/apiserver-key.pem" , dest: "apiserver.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kubernetes-ca.pem" , dest: "ca.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kubernetes-ca-key.pem" , dest: "ca.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-ca.pem" , dest: "etcd/ca.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-ca-key.pem" , dest: "etcd/ca.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-healthcheck-client.pem" , dest: "etcd/healthcheck-client.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-healthcheck-client-key.pem" , dest: "etcd/healthcheck-client.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-peer.pem" , dest: "etcd/peer.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-peer-key.pem" , dest: "etcd/peer.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-server.pem" , dest: "etcd/server.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/etcd-server-key.pem" , dest: "etcd/server.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kubernetes-front-proxy-ca.pem" , dest: "front-proxy-ca.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kubernetes-front-proxy-ca-key.pem" , dest: "front-proxy-ca.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/front-proxy-client.pem" , dest: "front-proxy-client.crt" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/front-proxy-client-key.pem" , dest: "front-proxy-client.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/sa.key" , dest: "sa.key" }
+    - {src: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/sa.pub" , dest: "sa.pub" }
+
+
+
+
+
+- name: "Unarchive kubernetes"
+  unarchive:
+    src: "/tmp/kubernetes-server-linux-amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+
+- name: "install kubernetes binary files"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: /usr/bin
+    remote_src: yes
+    mode: '0755'
+  with_items:
+    - { src: "/tmp/kubernetes/server/bin/apiextensions-apiserver" }
+    - { src: "/tmp/kubernetes/server/bin/kube-aggregator" }
+    - { src: "/tmp/kubernetes/server/bin/kube-apiserver" }
+    - { src: "/tmp/kubernetes/server/bin/kube-controller-manager" }
+    - { src: "/tmp/kubernetes/server/bin/kube-log-runner" }
+    - { src: "/tmp/kubernetes/server/bin/kube-proxy" }
+    - { src: "/tmp/kubernetes/server/bin/kube-scheduler" }
+    - { src: "/tmp/kubernetes/server/bin/kubeadm" }
+    - { src: "/tmp/kubernetes/server/bin/kubectl" }
+    - { src: "/tmp/kubernetes/server/bin/kubelet" }
+
+
+
+
+- name: "kubeconfig gencert"
+  shell: |
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-controller-manager-key.pem
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-controller-manager.pem
+
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-scheduler-key.pem
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-scheduler.pem
+
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-proxy-key.pem
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/kube-proxy.pem
+
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/admin-key.pem
+    wget http://{{ hostvars['static'].ansible_host }}:{{static.port}}/certs/admin.pem
+
+    KUBECONFIG=/etc/kubernetes/controller-manager.conf kubectl config set-cluster default-cluster --server="${server}" --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+    KUBECONFIG=/etc/kubernetes/controller-manager.conf kubectl config set-credentials default-controller-manager --client-key kube-controller-manager-key.pem --client-certificate kube-controller-manager.pem --embed-certs
+    KUBECONFIG=/etc/kubernetes/controller-manager.conf kubectl config set-context default-system --cluster default-cluster --user default-controller-manager
+    KUBECONFIG=/etc/kubernetes/controller-manager.conf kubectl config use-context default-system
+
+
+    KUBECONFIG=/etc/kubernetes/scheduler.conf kubectl config set-cluster default-cluster --server="${server}" --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+    KUBECONFIG=/etc/kubernetes/scheduler.conf kubectl config set-credentials default-scheduler --client-key kube-scheduler-key.pem --client-certificate kube-scheduler.pem --embed-certs
+    KUBECONFIG=/etc/kubernetes/scheduler.conf kubectl config set-context default-system --cluster default-cluster --user default-scheduler
+    KUBECONFIG=/etc/kubernetes/scheduler.conf kubectl config use-context default-system
+
+
+    KUBECONFIG=/var/lib/kube-proxy/kubeconfig.conf kubectl config set-cluster kubernetes --server="${server}" --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+    KUBECONFIG=/var/lib/kube-proxy/kubeconfig.conf kubectl config set-credentials kube-proxy --client-key kube-proxy-key.pem --client-certificate kube-proxy.pem --embed-certs=true
+    KUBECONFIG=/var/lib/kube-proxy/kubeconfig.conf kubectl config set-context default --cluster=kubernetes --user=kube-proxy
+    KUBECONFIG=/var/lib/kube-proxy/kubeconfig.conf kubectl config use-context default
+
+
+
+    KUBECONFIG=/etc/kubernetes/admin.conf kubectl config set-cluster default-cluster --server="${server}" --certificate-authority /etc/kubernetes/pki/ca.crt --embed-certs
+    KUBECONFIG=/etc/kubernetes/admin.conf kubectl config set-credentials default-admin --client-key admin-key.pem --client-certificate admin.pem --embed-certs
+    KUBECONFIG=/etc/kubernetes/admin.conf kubectl config set-context default-system --cluster default-cluster --user default-admin
+    KUBECONFIG=/etc/kubernetes/admin.conf kubectl config use-context default-system
+
+    mkdir -p /root/.kube
+    cp /etc/kubernetes/admin.conf /root/.kube/config
+  environment:
+    server: "{{ kubernetes.controlPlaneEndpoint }}"
+

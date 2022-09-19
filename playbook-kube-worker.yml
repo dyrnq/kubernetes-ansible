@@ -1,0 +1,25 @@
+- hosts: "{{ run | default('kube_worker')}}"
+  gather_facts: true
+  roles:
+    - verify
+    - system
+    - package
+    - cni
+    - role: docker
+      when: cri == "docker"
+    - role: cri-dockerd
+      when: ( cri == "docker" ) and ( KUBE_VER|float >=1.24 )
+    - role: buildkit
+      when: cri == "containerd"
+    - role: containerd
+      when: cri == "containerd"
+    - role: nerdctl
+      when: cri == "containerd"
+    - role: cri-o
+      when: cri == "cri-o"
+    - kube-inflate
+    - role: kube-ha
+      when: kubernetes.lb.keepalived == false
+    - kubelet
+    - kube-proxy
+

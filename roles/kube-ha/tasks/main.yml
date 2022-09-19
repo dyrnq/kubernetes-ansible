@@ -1,0 +1,12 @@
+---
+- include_tasks: keepalived.yml
+  when: kubernetes.lb.keepalived is true
+
+- include_tasks: haproxy.yml
+  when: kubernetes.lb.mode == "haproxy"
+
+- include_tasks: nginx.yml
+  when: kubernetes.lb.mode == "nginx"
+
+- include_tasks: traefik.yml
+  when: kubernetes.lb.mode == "traefik"

@@ -1,0 +1,43 @@
+---
+- name: Download traefik
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/traefik/{{ traefik_ver }}/traefik_{{ traefik_ver }}_linux_amd64.tar.gz"
+    dest: "/tmp"
+  tags: install_traefik
+- name: "Unarchive traefik"
+  unarchive:
+    src: "/tmp/traefik_{{ traefik_ver }}_linux_amd64.tar.gz"
+    dest: /tmp
+    remote_src: yes
+- name: "install traefik binary files"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ bindest }}"
+    remote_src: yes
+    mode: '0755'
+  with_items:
+    - { src: "/tmp/traefik" }
+- name: Create traefik directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/traefik/file"
+- name: "Generate traefik static configure"
+  template:
+    src: "traefik.yml.j2"
+    dest: "/etc/traefik/traefik.yml"
+- name: "Generate traefik dynamic configure"
+  template:
+    src: "traefik-kube-apiserver.yml.j2"
+    dest: "/etc/traefik/file/traefik-kube-apiserver.yml"
+- name: Create traefik unit file
+  template:
+    src: traefik.service.j2
+    dest: /lib/systemd/system/traefik.service
+- name: Enable traefik
+  systemd:
+    name: traefik
+    state: started
+    enabled: yes
+    daemon_reload: yes

@@ -1,0 +1,4 @@
+- hosts: "{{ run | default('master-1')}}"
+  gather_facts: true
+  roles:
+    - kube-addons

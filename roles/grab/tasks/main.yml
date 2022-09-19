@@ -1,0 +1,124 @@
+---
+- name: Create binary-packages directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "{{ static.root }}/certs"
+    - "{{ static.root }}/etcd/{{ etcd_ver }}"
+    - "{{ static.root }}/docker/{{ docker_ver }}"
+    - "{{ static.root }}/kubernetes/{{ kubernetes_ver }}"
+    - "{{ static.root }}/cni-plugins/{{ cni_ver }}"
+    - "{{ static.root }}/containerd/{{ containerd_ver }}"
+    - "{{ static.root }}/cri-dockerd/{{ cridockerd_ver }}"
+    - "{{ static.root }}/helm/{{ helm_ver }}"
+    - "{{ static.root }}/traefik/{{ traefik_ver }}"
+    - "{{ static.root }}/nerdctl/{{ nerdctl_ver }}"
+    - "{{ static.root }}/buildkit/{{ buildkit_ver }}"
+    - "{{ static.root }}/cri-o/{{ crio_ver }}"
+  tags: path
+
+
+# - name: Download binary-packages using get_url
+#   block:
+- name: Download etcd using get_url
+  get_url:
+    url: https://github.com/etcd-io/etcd/releases/download/{{ etcd_ver }}/etcd-{{ etcd_ver }}-linux-amd64.tar.gz
+    dest: "{{ static.root }}/etcd/{{ etcd_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: etcd  
+- name: Download docker using get_url
+  get_url:
+    url: http://mirrors.ustc.edu.cn/docker-ce/linux/static/stable/x86_64/docker-{{ docker_ver }}.tgz
+    dest: "{{ static.root }}/docker/{{ docker_ver }}"
+    use_proxy: no
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: docker
+- name: Download kubernetes using get_url
+  get_url:
+    url: https://dl.k8s.io/{{ kubernetes_ver }}/kubernetes-server-linux-amd64.tar.gz
+    dest: "{{ static.root }}/kubernetes/{{ kubernetes_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: kubernetes
+- name: Download containerd using get_url
+  get_url:
+    url: https://github.com/containerd/containerd/releases/download/{{ containerd_ver }}/containerd-{{ containerd_ver[1:] }}-linux-amd64.tar.gz
+    dest: "{{ static.root }}/containerd/{{ containerd_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: containerd
+    # https://github.com/containerd/containerd/releases/download/v1.6.8/containerd-1.6.8-linux-amd64.tar.gz
+- name: Download containerd using get_url
+  get_url:
+    url: https://github.com/containerd/containerd/releases/download/{{ containerd_ver }}/cri-containerd-{{ containerd_ver[1:] }}-linux-amd64.tar.gz
+    dest: "{{ static.root }}/containerd/{{ containerd_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: containerd
+    # https://github.com/containerd/containerd/releases/download/v1.6.8/cri-containerd-1.6.8-linux-amd64.tar.gz
+- name: Download cni-plugins using get_url
+  get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/{{ cni_ver }}/cni-plugins-linux-amd64-{{ cni_ver }}.tgz
+    dest: "{{ static.root }}/cni-plugins/{{ cni_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: cni
+- name: Download helm using get_url
+  get_url:
+    url: https://get.helm.sh/helm-{{ helm_ver }}-linux-amd64.tar.gz
+    dest: "{{ static.root }}/helm/{{ helm_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: helm
+- name: Download cri-dockerd using get_url
+  get_url:
+    url: https://github.com/Mirantis/cri-dockerd/releases/download/{{ cridockerd_ver }}/cri-dockerd-{{ cridockerd_ver[1:] }}.amd64.tgz
+    dest: "{{ static.root }}/cri-dockerd/{{ cridockerd_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: cri-dockerd  
+- name: Download traefik using get_url
+  get_url:
+    url: https://github.com/traefik/traefik/releases/download/{{ traefik_ver }}/traefik_{{ traefik_ver }}_linux_amd64.tar.gz
+    dest: "{{ static.root }}/traefik/{{ traefik_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: traefik
+- name: Download nerdctl using get_url
+  get_url:
+    url: https://github.com/containerd/nerdctl/releases/download/{{ nerdctl_ver }}/nerdctl-{{ nerdctl_ver[1:] }}-linux-amd64.tar.gz
+    dest: "{{ static.root }}/nerdctl/{{ nerdctl_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: nerdctl
+- name: Download buildkit using get_url
+  get_url:
+    url: https://github.com/moby/buildkit/releases/download/{{ buildkit_ver }}/buildkit-{{ buildkit_ver }}.linux-amd64.tar.gz
+    dest: "{{ static.root }}/buildkit/{{ buildkit_ver }}"
+    use_proxy: yes
+    # https://github.com/moby/buildkit/releases/download/v0.10.4/buildkit-v0.10.4.linux-amd64.tar.gz
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: buildkit
+- name: Download cri-o using get_url
+  get_url:
+    url: https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.{{ crio_ver }}.tar.gz
+    dest: "{{ static.root }}/cri-o/{{ crio_ver }}"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: cri-o
+  # https://storage.googleapis.com/cri-o/artifacts/cri-o.amd64.v1.25.0.tar.gz
+

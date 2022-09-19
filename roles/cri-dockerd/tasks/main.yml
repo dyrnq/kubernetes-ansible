@@ -1,0 +1,39 @@
+---
+- name: Download cri-dockerd
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/cri-dockerd/{{ cridockerd_ver }}/cri-dockerd-{{ cridockerd_ver[1:] }}.amd64.tgz"
+    dest: "/tmp"
+  tags: install_cri-dockerd
+
+- name: Create cri-dockerd directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/systemd/system/cri-dockerd.service.d/"
+
+- name: "Install cri-dockerd"
+  unarchive:
+    src: "/tmp/cri-dockerd-{{ cridockerd_ver[1:] }}.amd64.tgz"
+    dest: "{{ bindest }}"
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+  tags: install_cri-dockerd
+
+- name: Create cri-docker.service unit files
+  template: 
+    src: cri-docker.service.j2
+    dest: /lib/systemd/system/cri-docker.service
+
+- name: Create cri-docker.socket unit files
+  template: 
+    src: cri-docker.socket.j2
+    dest: /lib/systemd/system/cri-docker.socket
+
+- name: Enable cri-dockerd
+  systemd:
+    name: cri-docker
+    state: started
+    enabled: yes
+    daemon_reload: yes

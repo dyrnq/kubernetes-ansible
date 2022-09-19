@@ -1,0 +1,5 @@
+- hosts: "{{ run | default('static')}}"
+  gather_facts: true
+  roles:
+    - cfssl
+    - certificates

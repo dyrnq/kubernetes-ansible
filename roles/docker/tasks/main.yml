@@ -1,0 +1,59 @@
+---
+- name: Download docker
+  get_url:
+    url: "http://{{ hostvars['static'].ansible_host }}:{{static.port}}/docker/{{ docker_ver }}/docker-{{ docker_ver }}.tgz"
+    dest: "/tmp"
+  tags: install_docker
+
+- name: Create docker directories
+  file: 
+    path: "{{item}}"
+    state: directory
+  with_items:
+    - "/etc/docker"
+    - "/etc/systemd/system/docker.service.d/"
+
+- name: "Install docker"
+  unarchive:
+    src: "/tmp/docker-{{ docker_ver }}.tgz"
+    dest: "{{ bindest }}"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+  tags: install_docker
+
+- name: "Create docker group"
+  group:
+    name: docker
+    gid: 5000
+    system: yes
+
+- name: Create /etc/docker/daemon.json
+  template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+
+- name: Create docker.service unit files
+  template: 
+    src: docker.service.j2
+    dest: /lib/systemd/system/docker.service
+
+- name: Create docker.socket unit files
+  template: 
+    src: docker.socket.j2
+    dest: /lib/systemd/system/docker.socket
+
+- name: Create containerd.service unit files
+  template: 
+    src: containerd.service.j2
+    dest: /lib/systemd/system/containerd.service
+
+- name: Enable docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+    daemon_reload: yes

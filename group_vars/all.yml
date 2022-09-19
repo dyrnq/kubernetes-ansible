@@ -1,0 +1,66 @@
+ansible_python_interpreter: /usr/bin/python3
+ansible_user: vagrant
+ansible_ssh_port: 22
+# ansible_ssh_pass: letmein123
+# ansible_become_password: letmein123
+ansible_become: yes
+ansible_become_user: root
+ansible_become_pass: vagrant
+# privilege escalation method to use (default=sudo), valid choices: [ sudo | su | pbrun | pfexec | doas | dzdo | ksu | runas | machinectl ]
+
+
+
+####################################################################################
+
+updata_hostname: false
+timezone: "Asia/Shanghai"
+https_proxy: "http://192.168.0.100:8118"
+cfssl_ver: "1.6.2"
+etcd_ver: "v3.5.4"
+docker_ver: "20.10.18"
+cridockerd_ver: "v0.2.5"
+containerd_ver: "v1.6.8"
+nerdctl_ver: "v0.23.0"
+cni_ver: "v1.1.1"
+helm_ver: "v3.9.1"
+traefik_ver: "v2.8.5"
+calico_ver: "v3.22"
+buildkit_ver: "v0.10.4"
+crio_ver: "v1.25.0"
+kubernetes_ver: "v1.23.11"
+bindest: "/usr/local/bin"
+infra_image: "docker.io/dyrnq/pause:3.7"
+iface_name: "enp0s8"
+cri: "docker" # Options: docker,cridockerd,cri-o
+
+####################################################################################
+
+static:
+  port: 12355
+  root: /data
+  certs:
+    path: /data/certs
+
+etcd:
+  data_dir: "/var/lib/etcd"
+
+certificates:
+  # years 
+  expiry: 200
+
+kubernetes:
+  etc:
+    path: /etc/kubernetes
+  lb:
+    dns: apiserver.k8s.local
+    port: 8443
+    mode: "traefik"
+    ip: "192.168.27.100" # floating ip keepalived, when keepalived false ignore
+    keepalived: false
+  cluster_name: kubernetes
+  cluster_svc_cidr: 10.96.0.0/12
+  cluster_pod_cidr: 10.244.0.0/16
+  cluster_dns: 10.96.0.10
+  loglevel: 1
+  controlPlaneEndpoint: "https://apiserver.k8s.local:8443"
+####################################################################################

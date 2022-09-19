@@ -1,0 +1,106 @@
+---
+- name: Install epel repo on Centos
+  yum: name=epel-release state=latest update_cache=yes
+  when:
+    - ansible_os_family in ['RedHat', 'AlmaLinux', 'Rocky']
+
+- name: Change source Ubuntu
+  shell: |
+    sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list
+  when:
+    - ansible_distribution in ["Ubuntu"]
+
+
+- name: Change source Debian
+  shell: |
+    sudo sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
+  when:
+    - ansible_distribution in ["Debian"]
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: ansible_pkg_mgr == "apt"
+
+- name: Update yum cache
+  ansible.builtin.yum:
+    update_cache: yes
+  when: ansible_pkg_mgr == "yum"
+
+- name: Update apk cache
+  community.general.apk:
+    update_cache: yes
+  when: ansible_pkg_mgr == "apk"
+
+- name: Update dnf cache
+  ansible.builtin.dnf:
+    update_cache: yes
+  when: ansible_pkg_mgr == "dnf"
+
+- name: Update zypper cache
+  community.general.zypper:
+    name: zypper
+    update_cache: yes
+  when: ansible_pkg_mgr == "zypper"
+
+- name: Update pacman cache
+  community.general.pacman:
+    update_cache: yes
+  when: ansible_pkg_mgr == "pacman"
+
+- name: "Install base application"
+  package:
+    name:
+      - vim
+      - mtr
+      - tar
+      - curl
+      - wget
+      - lsof
+      - unzip
+      - lrzsz
+      - rsync
+      - net-tools
+      - psmisc
+      - jq
+      - socat
+      - bash-completion
+      - ipset
+      - ipvsadm
+      - iptables
+      - conntrack
+      - net-tools
+      - sysstat
+      - unzip
+      - tcpdump
+      - telnet
+      - nload
+      - strace
+      - bridge-utils
+      - iftop
+      - htop
+    state: present
+    update_cache: yes
+  tags: install_package
+
+- name: "Install application yum"
+  package:
+    name:
+      - nmap-ncat
+      - yum-utils
+      - nfs-utils
+    state: present
+  when:
+    - ansible_distribution in ["CentOS","RedHat","Amazon","Aliyun"]
+  tags: install_package
+
+- name: "Install application deb"
+  package:
+    name:
+      - nmap
+      - nmap-common
+      - nfs-common
+    state: present
+  when:
+    - ansible_distribution in ["Ubuntu","Debian"]
+  tags: install_package

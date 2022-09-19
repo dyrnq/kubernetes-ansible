@@ -1,0 +1,13 @@
+---
+- name: Create kube-scheduler unit file
+  template:
+    src: kube-scheduler.service.j2
+    dest: /usr/lib/systemd/system/kube-scheduler.service
+
+
+- name: Enable kube-scheduler
+  systemd:
+    name: kube-scheduler
+    state: started
+    enabled: yes
+    daemon_reload: yes

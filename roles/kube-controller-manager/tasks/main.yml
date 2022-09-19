@@ -1,0 +1,12 @@
+---
+- name: Create kube-controller-manager unit file
+  template:
+    src: kube-controller-manager.service.j2
+    dest: /usr/lib/systemd/system/kube-controller-manager.service
+
+- name: Enable kube-controller-manager
+  systemd:
+    name: kube-controller-manager
+    state: started
+    enabled: yes
+    daemon_reload: yes

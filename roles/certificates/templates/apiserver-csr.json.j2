@@ -1,0 +1,26 @@
+{
+  "CN": "kubernetes",
+  "hosts": [
+{% for item in groups['kube_master'] %}
+    "{{ hostvars[item].inventory_hostname }}",
+{% endfor %}
+{% for item in groups['kube_master'] %}
+    "{{ hostvars[item].ansible_host }}",
+{% endfor %}
+    "{{ kubernetes.lb.ip }}",
+    "{{ kubernetes.lb.dns }}",
+    "10.254.0.1",
+    "10.0.0.1",
+    "10.96.0.1",
+    "127.0.0.1",
+    "kubernetes",
+    "kubernetes.default",
+    "kubernetes.default.svc",
+    "kubernetes.default.svc.cluster",
+    "kubernetes.default.svc.cluster.local"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 4096
+  }
+}

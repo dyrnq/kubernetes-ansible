@@ -1,0 +1,93 @@
+---
+- name: Create kube-kubelet unit file
+  template:
+    src: kubelet.service.j2
+    dest: /usr/lib/systemd/system/kubelet.service
+
+- name: Create /var/lib/kubelet/kubeadm-flags file
+  template:
+    src: kubeadm-flags.env.j2
+    dest: /var/lib/kubelet/kubeadm-flags.env
+
+
+- name: Create /etc/default/kubelet file
+  template:
+    src: kubelet.j2
+    dest: /etc/default/kubelet
+
+- name: Grep 127.0.0.53
+  shell: grep 127.0.0.53 /etc/resolv.conf
+  register: grep_resolv
+
+- name: Set resolv
+  ansible.builtin.set_fact:
+    resolv: /run/systemd/resolve/resolv.conf
+  when: grep_resolv.rc == 0
+
+- name: Set resolv
+  ansible.builtin.set_fact:
+    resolv: /etc/resolv.conf
+  when: grep_resolv.rc != 0
+
+- name: Create /var/lib/kubelet/config.yaml file
+  template:
+    src: config.yaml.j2
+    dest: /var/lib/kubelet/config.yaml
+
+- name: Enable DNS
+  when: kubernetes.lb.keepalived is true
+  shell: |
+    sed -i '/{{kubernetes.lb.dns}}/d' /etc/hosts
+    echo "{{kubernetes.lb.ip}}  {{kubernetes.lb.dns}}" >> /etc/hosts
+
+- name: Enable DNS
+  when: kubernetes.lb.keepalived is false
+  shell: |
+    sed -i '/{{kubernetes.lb.dns}}/d' /etc/hosts
+    echo "127.0.0.1  {{kubernetes.lb.dns}}" >> /etc/hosts
+
+- name: Waiting kubectl working
+  shell: kubectl cluster-info 2&>/dev/null
+  register: waiting_for_cluster
+  until: waiting_for_cluster.rc == 0
+  retries: 30
+  delay: 5
+
+- name: Check that the /etc/kubernetes/bootstrap-kubelet.conf
+  stat:
+    path: /etc/kubernetes/bootstrap-kubelet.conf
+  register: bootstrap_result
+
+
+- name: bootstrap-token
+  when: bootstrap_result.stat.exists == False
+  shell: |
+    TOKEN_PUB=$(openssl rand -hex 3)
+    TOKEN_SECRET=$(openssl rand -hex 8)
+    BOOTSTRAP_TOKEN="${TOKEN_PUB}.${TOKEN_SECRET}"
+    CLUSTER_NAME="kubernetes"
+    KUBE_USER="kubelet-bootstrap"
+    KUBE_CONFIG="/etc/kubernetes/bootstrap-kubelet.conf"
+
+    kubectl -n kube-system create secret generic bootstrap-token-${TOKEN_PUB} \
+        --type 'bootstrap.kubernetes.io/token' \
+        --from-literal description="cluster bootstrap token" \
+        --from-literal token-id="${TOKEN_PUB}" \
+        --from-literal token-secret="${TOKEN_SECRET}" \
+        --from-literal usage-bootstrap-authentication=true \
+        --from-literal usage-bootstrap-signing=true
+
+    kubectl config set-cluster ${CLUSTER_NAME} --certificate-authority=/etc/kubernetes/pki/ca.crt --embed-certs=true --server="${server}" --kubeconfig=${KUBE_CONFIG}
+    kubectl config set-context ${KUBE_USER}@${CLUSTER_NAME} --cluster=${CLUSTER_NAME} --user=${KUBE_USER} --kubeconfig=${KUBE_CONFIG}
+    kubectl config set-credentials ${KUBE_USER} --token="${BOOTSTRAP_TOKEN}" --kubeconfig=${KUBE_CONFIG}
+    kubectl config use-context ${KUBE_USER}@${CLUSTER_NAME} --kubeconfig=${KUBE_CONFIG}
+  environment:
+    server: "{{ kubernetes.controlPlaneEndpoint }}"
+
+
+- name: Enable kube-kubelet
+  systemd:
+    name: kubelet
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

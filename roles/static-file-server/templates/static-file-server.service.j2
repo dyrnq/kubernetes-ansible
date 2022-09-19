@@ -1,0 +1,23 @@
+[Unit]
+Description=static-file-server server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Environment="FOLDER={{ static.root }}"
+Environment="PORT={{ static.port }}"
+Environment="HOST={{ ansible_host }}"
+Environment="SHOW_LISTING=true"
+ExecStart=/usr/local/bin/static-file-server
+TimeoutStartSec=30
+TimeoutStopSec=20
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+LimitNOFILE=512000
+LimitNPROC=512000
+[Install]
+WantedBy=multi-user.target

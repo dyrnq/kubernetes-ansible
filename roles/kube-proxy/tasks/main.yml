@@ -1,0 +1,17 @@
+---
+- name: Create kube-proxy config file
+  template:
+    src: config.conf.j2
+    dest: /var/lib/kube-proxy/config.conf
+
+- name: Create kube-proxy unit file
+  template:
+    src: kube-proxy.service.j2
+    dest: /usr/lib/systemd/system/kube-proxy.service
+
+- name: Enable kube-proxy
+  systemd:
+    name: kube-proxy
+    state: started
+    enabled: yes
+    daemon_reload: yes

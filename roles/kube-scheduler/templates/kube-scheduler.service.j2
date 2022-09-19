@@ -1,0 +1,20 @@
+[Unit]
+Description=Kubernetes Scheduler
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/kube-scheduler \
+  --authentication-kubeconfig={{  kubernetes.etc.path }}/scheduler.conf \
+  --authorization-kubeconfig={{  kubernetes.etc.path }}/scheduler.conf \
+  --bind-address=127.0.0.1 \
+  --kubeconfig={{  kubernetes.etc.path }}/scheduler.conf \
+  --leader-elect=true \
+  --logtostderr=false \
+  --log-dir=/var/log/kubernetes/kube-scheduler \
+  --v={{  kubernetes.loglevel }}
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

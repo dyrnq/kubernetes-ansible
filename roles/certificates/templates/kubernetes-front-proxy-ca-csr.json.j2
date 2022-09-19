@@ -1,0 +1,17 @@
+{
+    "CN": "kubernetes-front-proxy-ca",
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "ca": {
+        "expiry": "{{ certificates.expiry*365*24 }}h"
+    },
+    "names": [{
+	    "C": "CN",
+	    "ST": "Shenzhen",
+	    "L": "Shenzhen",
+	    "O": "Inc.",
+	    "OU": "Kubernetes front CA"
+    }]    
+}

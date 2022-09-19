@@ -1,0 +1,93 @@
+
+---
+# - name: Create temporary build directory
+#   ansible.builtin.tempfile:
+#     state: directory
+#     suffix: build
+#   register: tempdir_1
+
+- name: "Create static-file-server data directory"
+  file:
+    path: "{{ static.certs.path }}"
+    # owner: etcd
+    # group: etcd
+    # mode: 0700
+    state: directory
+
+- name: "Generate cfssl csr file"
+  template:
+    src: "{{ item }}"
+    dest: "{{ static.certs.path }}/{{ item[:-3] }}"
+    #mode: g=r,o=r
+  with_items:
+    - admin-csr.json.j2
+    - apiserver-csr.json.j2
+    - apiserver-etcd-client-csr.json.j2
+    - apiserver-kubelet-client-csr.json.j2
+    - etcd-ca-config.json.j2
+    - etcd-ca-csr.json.j2
+    - etcd-healthcheck-client-csr.json.j2
+    - etcd-peer-csr.json.j2
+    - etcd-server-csr.json.j2
+    - front-proxy-client-csr.json.j2
+    - kube-controller-manager-csr.json.j2
+    - kube-proxy-csr.json.j2
+    - kubernetes-ca-config.json.j2
+    - kubernetes-ca-csr.json.j2
+    - kubernetes-front-proxy-ca-config.json.j2
+    - kubernetes-front-proxy-ca-csr.json.j2
+    - kube-scheduler-csr.json.j2
+
+- name: cfssl gencert
+  shell: |
+    echo ${DIR}
+    pushd ${DIR} >/dev/null
+
+
+    openssl genrsa -out "${DIR}"/sa.key 2048
+    openssl rsa -in "${DIR}"/sa.key -pubout -out "${DIR}"/sa.pub
+
+
+    cfssl gencert -initca "${DIR}"/kubernetes-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-ca
+
+    cfssl gencert -initca "${DIR}"/kubernetes-front-proxy-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-front-proxy-ca
+
+    cfssl gencert -initca "${DIR}"/etcd-ca-csr.json | cfssljson -bare "${DIR}"/etcd-ca
+
+    # etcd 
+    cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-server-csr.json | cfssljson -bare "${DIR}"/etcd-server
+    cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-peer-csr.json | cfssljson -bare "${DIR}"/etcd-peer
+    cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=client "${DIR}"/etcd-healthcheck-client-csr.json | cfssljson -bare "${DIR}"/etcd-healthcheck-client
+
+    # k8s serverapi
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=server    "${DIR}"/apiserver-csr.json | cfssljson -bare "${DIR}"/apiserver
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/apiserver-kubelet-client-csr.json | cfssljson -bare "${DIR}"/apiserver-kubelet-client
+    cfssl gencert -ca="${DIR}"/etcd-ca.pem       -ca-key="${DIR}"/etcd-ca-key.pem       --config="${DIR}"/etcd-ca-config.json       -profile=client "${DIR}"/apiserver-etcd-client-csr.json | cfssljson -bare "${DIR}"/apiserver-etcd-client
+
+    # k8s kubelet 
+
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/kube-controller-manager-csr.json | cfssljson -bare "${DIR}"/kube-controller-manager
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/kube-scheduler-csr.json | cfssljson -bare "${DIR}"/kube-scheduler
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/kube-proxy-csr.json | cfssljson -bare "${DIR}"/kube-proxy
+
+
+    # front-proxy
+
+    cfssl gencert -ca="${DIR}"/kubernetes-front-proxy-ca.pem -ca-key="${DIR}"/kubernetes-front-proxy-ca-key.pem --config="${DIR}"/kubernetes-front-proxy-ca-config.json -profile=client "${DIR}"/front-proxy-client-csr.json | cfssljson -bare "${DIR}"/front-proxy-client
+
+    # kubectl
+
+    cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/admin-csr.json | cfssljson -bare "${DIR}"/admin
+
+
+
+  #failed_when: false
+
+  environment:
+    DIR: "{{ static.certs.path }}"
+  run_once: true
+  register: ps
+- debug: var=ps.stdout_lines
+
+
+
