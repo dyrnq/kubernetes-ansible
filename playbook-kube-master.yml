@@ -22,9 +22,6 @@
       when: cri == "containerd"
     - role: cri-o
       when: cri == "cri-o"
-    - kube-inflate
-    - role: kube-ha
-      when: kubernetes.lb.keepalived == false
     - kubelet
     - kube-proxy
 
