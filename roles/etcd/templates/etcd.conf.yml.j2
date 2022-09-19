@@ -1,5 +1,5 @@
 name: '{{ inventory_hostname }}'
-data-dir: /var/lib/etcd
+data-dir: {{ etcd.data_dir }}
 wal-dir:
 snapshot-count: 10000
 heartbeat-interval: 100
