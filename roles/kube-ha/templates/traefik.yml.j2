@@ -11,6 +11,8 @@ api:
 ping: {}
 accessLog: {}
 entryPoints:
+  traefik:
+    address: ':8444'
   kubernetes:
     address: ':{{ kubernetes.lb.port }}'
 providers:
