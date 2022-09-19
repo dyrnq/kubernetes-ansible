@@ -54,7 +54,7 @@ kubernetes:
   lb:
     dns: apiserver.k8s.local
     port: 8443
-    mode: "traefik"
+    mode: "traefik" # Options: traefik,haproxy,nginx
     ip: "192.168.27.100" # floating ip keepalived, when keepalived false ignore
     keepalived: false
   cluster_name: kubernetes
