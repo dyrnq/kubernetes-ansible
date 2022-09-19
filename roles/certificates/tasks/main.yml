@@ -41,7 +41,7 @@
 - name: cfssl gencert
   ansible.builtin.shell: |
     # echo ${DIR}
-    # pushd ${DIR} >/dev/null   
+    # pushd ${DIR} >/dev/null
 
 
     openssl genrsa -out "${DIR}"/sa.key 2048
