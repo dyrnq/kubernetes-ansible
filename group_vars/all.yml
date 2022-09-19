@@ -65,6 +65,7 @@ kubernetes:
   cluster_svc_cidr: 10.96.0.0/12
   cluster_pod_cidr: 10.244.0.0/16
   cluster_dns: 10.96.0.10
+  cluster_kubernetes: 10.96.0.1
   loglevel: 1
   controlPlaneEndpoint: "https://apiserver.k8s.local:8443"
 ####################################################################################
