@@ -7,6 +7,10 @@ Support docker(ctr-dockerd)、containerd、cri-o.
 
 ### prepare
 
+- install virtualbox [ref](https://www.virtualbox.org/manual/ch02.html)
+- install vagrant [ref](https://www.vagrantup.com/docs/installation)
+- install ansible [ref](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+
 ```bash
 vagrant up etcd-1 etcd-2 etcd-3 master-1 master-2 master-3 worker-1 worker-2 worker-3
 ```
@@ -68,3 +72,4 @@ git clone --depth=1 git@github.com:nginxinc/ansible-role-nginx.git
 - <https://github.com/maclarensg/k8s-ha-ansible>
 - <https://github.com/cby-chen/Kubernetes>
 - <https://github.com/raymond999999/kubernetes-ansible>
+- <https://github.com/buxiaomo/kubeasy>
