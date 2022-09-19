@@ -36,6 +36,7 @@ bindest: "/usr/local/bin"
 infra_image: "docker.io/dyrnq/pause:3.7"
 iface_name: "enp0s8"
 cri: "docker" # Options: docker,cridockerd,cri-o
+cert_expiry: 200 # years
 
 ####################################################################################
 
@@ -48,9 +49,10 @@ static:
 etcd:
   data_dir: "/var/lib/etcd"
 
-certificates:
-  # years 
-  expiry: 200
+
+
+
+
 
 kubernetes:
   etc:

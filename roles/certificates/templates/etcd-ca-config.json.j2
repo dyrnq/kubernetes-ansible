@@ -2,7 +2,7 @@
   "signing": {
     "profiles": {
       "server": {
-        "expiry": "{{ certificates.expiry*365*24 }}h",
+        "expiry": "{{ cert_expiry*365*24 }}h",
         "usages": [
           "signing",
           "key encipherment",
@@ -10,7 +10,7 @@
         ]
       },
       "client": {
-        "expiry": "{{ certificates.expiry*365*24 }}h",
+        "expiry": "{{ cert_expiry*365*24 }}h",
         "usages": [
           "signing",
           "key encipherment",
@@ -18,7 +18,7 @@
         ]
       },
       "peer": {
-        "expiry": "{{ certificates.expiry*365*24 }}h",
+        "expiry": "{{ cert_expiry*365*24 }}h",
         "usages": [
           "signing",
           "key encipherment",

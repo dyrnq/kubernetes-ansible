@@ -1,11 +1,11 @@
 {
   "signing": {
     "default": {
-      "expiry": "{{ certificates.expiry*365*24 }}h"
+      "expiry": "{{ cert_expiry*365*24 }}h"
     },
     "profiles": {
       "client": {
-        "expiry": "{{ certificates.expiry*365*24 }}h",
+        "expiry": "{{ cert_expiry*365*24 }}h",
         "usages": [
           "signing",
           "key encipherment",
