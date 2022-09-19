@@ -49,6 +49,7 @@ ansible-playbook -i inventory/hosts -e "run=worker-2" -e "cri=cri-o" -e "kuberne
 ansible-playbook -i inventory/hosts  playbook-kube-addons.yml
 ```
 ### ansible-role-nginx
+If kubernetes.lb.mode value is "nginx", need clone ansible-role-nginx first by script below.
 ```bash
 mkdir -p ~/.ansible/roles/
 cd ~/.ansible/roles/
