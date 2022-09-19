@@ -1,19 +1,19 @@
-static      ansible_host=192.168.27.3 ansible_ssh_private_key_file=insecure_private_key
+static      ansible_host=192.168.27.3
 
 [etcd]
-etcd-1      ansible_host=192.168.27.3 ansible_ssh_private_key_file=insecure_private_key
-etcd-2      ansible_host=192.168.27.4 ansible_ssh_private_key_file=insecure_private_key
-etcd-3      ansible_host=192.168.27.5 ansible_ssh_private_key_file=insecure_private_key
+etcd-1      ansible_host=192.168.27.3
+etcd-2      ansible_host=192.168.27.4
+etcd-3      ansible_host=192.168.27.5
 
 [kube_master]
-master-1    ansible_host=192.168.27.11 ansible_ssh_private_key_file=insecure_private_key
-master-2    ansible_host=192.168.27.12 ansible_ssh_private_key_file=insecure_private_key
-master-3    ansible_host=192.168.27.13 ansible_ssh_private_key_file=insecure_private_key
+master-1    ansible_host=192.168.27.11
+master-2    ansible_host=192.168.27.12
+master-3    ansible_host=192.168.27.13
 
 [kube_worker]
-worker-1    ansible_host=192.168.27.111 ansible_ssh_private_key_file=insecure_private_key cri=cri-o
-worker-2    ansible_host=192.168.27.112 ansible_ssh_private_key_file=insecure_private_key cri=containerd
-worker-3    ansible_host=192.168.27.113 ansible_ssh_private_key_file=insecure_private_key cri=docker
+worker-1    ansible_host=192.168.27.111 cri=cri-o
+worker-2    ansible_host=192.168.27.112 cri=containerd
+worker-3    ansible_host=192.168.27.113 cri=docker
 
 [kube_node:children]
 kube_master

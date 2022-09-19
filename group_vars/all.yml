@@ -1,8 +1,12 @@
 ansible_python_interpreter: /usr/bin/python3
 ansible_user: vagrant
-ansible_ssh_port: 22
+ansible_port: 22
+ansible_private_key_file: insecure_private_key
+# ansible_password:
+# ansible_ssh_port: 22
+# ansible_ssh_user: 
 # ansible_ssh_pass: letmein123
-# ansible_become_password: letmein123
+# Ansible 2.0 has deprecated the “ssh” from ansible_ssh_user, ansible_ssh_host, and ansible_ssh_port to become ansible_user, ansible_host, and ansible_port.
 ansible_become: yes
 ansible_become_user: root
 ansible_become_pass: vagrant
