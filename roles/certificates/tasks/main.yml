@@ -39,9 +39,9 @@
     - kube-scheduler-csr.json.j2
 
 - name: cfssl gencert
-  shell: |
-    echo ${DIR}
-    pushd ${DIR} >/dev/null
+  ansible.builtin.shell: |
+    # echo ${DIR}
+    # pushd ${DIR} >/dev/null   
 
 
     openssl genrsa -out "${DIR}"/sa.key 2048
@@ -54,17 +54,17 @@
 
     cfssl gencert -initca "${DIR}"/etcd-ca-csr.json | cfssljson -bare "${DIR}"/etcd-ca
 
-    # etcd 
+    # etcd
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-server-csr.json | cfssljson -bare "${DIR}"/etcd-server
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-peer-csr.json | cfssljson -bare "${DIR}"/etcd-peer
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=client "${DIR}"/etcd-healthcheck-client-csr.json | cfssljson -bare "${DIR}"/etcd-healthcheck-client
 
-    # k8s serverapi
+    # k8s apiserver
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=server    "${DIR}"/apiserver-csr.json | cfssljson -bare "${DIR}"/apiserver
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/apiserver-kubelet-client-csr.json | cfssljson -bare "${DIR}"/apiserver-kubelet-client
     cfssl gencert -ca="${DIR}"/etcd-ca.pem       -ca-key="${DIR}"/etcd-ca-key.pem       --config="${DIR}"/etcd-ca-config.json       -profile=client "${DIR}"/apiserver-etcd-client-csr.json | cfssljson -bare "${DIR}"/apiserver-etcd-client
 
-    # k8s kubelet 
+    # k8s kubelet
 
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/kube-controller-manager-csr.json | cfssljson -bare "${DIR}"/kube-controller-manager
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/kube-scheduler-csr.json | cfssljson -bare "${DIR}"/kube-scheduler
@@ -78,11 +78,10 @@
     # kubectl
 
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=client "${DIR}"/admin-csr.json | cfssljson -bare "${DIR}"/admin
-
-
-
+  args:
+    executable: /bin/bash
+    chdir: "{{ static.certs.path }}"
   #failed_when: false
-
   environment:
     DIR: "{{ static.certs.path }}"
   run_once: true
