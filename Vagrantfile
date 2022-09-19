@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
     machines = {
         'etcd-1' => '192.168.27.3',
         'etcd-2' => '192.168.27.4',
-        'etcd-3' => '192.168.27.5',        
+        'etcd-3' => '192.168.27.5',
         # kube control planenodes
         'master-1' => '192.168.27.11',
         'master-2' => '192.168.27.12',
