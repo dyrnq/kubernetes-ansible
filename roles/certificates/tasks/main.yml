@@ -6,7 +6,7 @@
 #     suffix: build
 #   register: tempdir_1
 
-- name: "Create static-file-server data directory"
+- name: "Create certificates data directory"
   file:
     path: "{{ static.certs.path }}"
     # owner: etcd
