@@ -1,0 +1,25 @@
+[Unit]
+Description=lvscare
+Documentation=https://github.com/labring/lvscare
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart={{ bindest }}/lvscare care \
+    --vs 10.10.10.10:{{ kubernetes.lb.port }} \
+    --mode link \
+    --logger INFO \
+{% for item in groups['kube_master'] %}
+    --rs {{hostvars[item].ansible_host}}:6443 \
+{% endfor %}
+    --health-insecure-skip-verify true \
+    --health-status 401,403,200,201 \
+    --health-schem https
+Restart=on-failure
+RestartSec=10s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

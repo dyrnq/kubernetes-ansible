@@ -24,7 +24,8 @@ iptables:
   minSyncPeriod: 0s
   syncPeriod: 0s
 ipvs:
-  excludeCIDRs: null
+  excludeCIDRs:
+    - 10.10.10.10/32
   minSyncPeriod: 0s
   scheduler: ""
   strictARP: false

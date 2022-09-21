@@ -10,3 +10,6 @@
 
 - include_tasks: traefik.yml
   when: kubernetes.lb.mode == "traefik"
+
+- include_tasks: lvscare.yml
+  when: kubernetes.lb.mode == "lvscare"

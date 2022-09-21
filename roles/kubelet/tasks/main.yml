@@ -34,17 +34,23 @@
     src: config.yaml.j2
     dest: /var/lib/kubelet/config.yaml
 
-- name: Enable DNS
+- name: Enable kubernetes lb DNS
   when: kubernetes.lb.keepalived is true
   shell: |
     sed -i '/{{kubernetes.lb.dns}}/d' /etc/hosts
     echo "{{kubernetes.lb.ip}}  {{kubernetes.lb.dns}}" >> /etc/hosts
 
-- name: Enable DNS
-  when: kubernetes.lb.keepalived is false
+- name: Enable kubernetes lb DNS
+  when: ( kubernetes.lb.keepalived is false ) and ( kubernetes.lb.mode != "lvscare" ) 
   shell: |
     sed -i '/{{kubernetes.lb.dns}}/d' /etc/hosts
     echo "127.0.0.1  {{kubernetes.lb.dns}}" >> /etc/hosts
+
+- name: Enable kubernetes lb DNS
+  when: ( kubernetes.lb.keepalived is false ) and ( kubernetes.lb.mode == "lvscare" ) 
+  shell: |
+    sed -i '/{{kubernetes.lb.dns}}/d' /etc/hosts
+    echo "10.10.10.10  {{kubernetes.lb.dns}}" >> /etc/hosts
 
 - name: Waiting kubectl working
   shell: kubectl cluster-info 2&>/dev/null

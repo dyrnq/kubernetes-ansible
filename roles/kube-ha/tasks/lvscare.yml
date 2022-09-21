@@ -1,0 +1,31 @@
+---
+- name: Download lvscare
+  get_url:
+    url: "https://github.com/dyrnq/lvscare-binary/releases/download/v4.1.3/lvscare-v4.1.3.linux-amd64.tar.gz"
+    dest: "/tmp"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: install_lvscare
+
+- name: "Install lvscare"
+  unarchive:
+    src: "/tmp/lvscare-v4.1.3.linux-amd64.tar.gz"
+    dest: "{{ bindest }}"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: yes
+  tags: install_lvscare
+
+- name: Create lvscare.service unit files
+  template: 
+    src: lvscare.service.j2
+    dest: /lib/systemd/system/lvscare.service
+
+- name: Enable lvscare
+  systemd:
+    name: lvscare
+    state: restarted
+    enabled: yes
+    daemon_reload: yes
