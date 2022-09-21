@@ -13,8 +13,21 @@
     # group: etcd
     # mode: 0700
     state: directory
+  tags: path
 
-- name: "Generate cfssl csr file"
+- name: "Generate cfssl csr file for etcd"
+  template:
+    src: "{{ item }}"
+    dest: "{{ static.certs.path }}/{{ item[:-3] }}"
+    #mode: g=r,o=r
+  with_items:
+    - etcd-ca-config.json.j2
+    - etcd-ca-csr.json.j2
+    - etcd-healthcheck-client-csr.json.j2
+    - etcd-peer-csr.json.j2
+    - etcd-server-csr.json.j2
+  tags: etcd
+- name: "Generate cfssl csr file for kubernetes"
   template:
     src: "{{ item }}"
     dest: "{{ static.certs.path }}/{{ item[:-3] }}"
@@ -24,11 +37,6 @@
     - apiserver-csr.json.j2
     - apiserver-etcd-client-csr.json.j2
     - apiserver-kubelet-client-csr.json.j2
-    - etcd-ca-config.json.j2
-    - etcd-ca-csr.json.j2
-    - etcd-healthcheck-client-csr.json.j2
-    - etcd-peer-csr.json.j2
-    - etcd-server-csr.json.j2
     - front-proxy-client-csr.json.j2
     - kube-controller-manager-csr.json.j2
     - kube-proxy-csr.json.j2
@@ -37,27 +45,28 @@
     - kubernetes-front-proxy-ca-config.json.j2
     - kubernetes-front-proxy-ca-csr.json.j2
     - kube-scheduler-csr.json.j2
-
-- name: cfssl gencert
+  tags: kubernetes
+- name: cfssl gencert certificates for etcd
   ansible.builtin.shell: |
-    # echo ${DIR}
-    # pushd ${DIR} >/dev/null
-
-
-    openssl genrsa -out "${DIR}"/sa.key 2048
-    openssl rsa -in "${DIR}"/sa.key -pubout -out "${DIR}"/sa.pub
-
-
-    cfssl gencert -initca "${DIR}"/kubernetes-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-ca
-
-    cfssl gencert -initca "${DIR}"/kubernetes-front-proxy-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-front-proxy-ca
-
     cfssl gencert -initca "${DIR}"/etcd-ca-csr.json | cfssljson -bare "${DIR}"/etcd-ca
-
     # etcd
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-server-csr.json | cfssljson -bare "${DIR}"/etcd-server
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=peer "${DIR}"/etcd-peer-csr.json | cfssljson -bare "${DIR}"/etcd-peer
     cfssl gencert -ca="${DIR}"/etcd-ca.pem -ca-key="${DIR}"/etcd-ca-key.pem --config="${DIR}"/etcd-ca-config.json -profile=client "${DIR}"/etcd-healthcheck-client-csr.json | cfssljson -bare "${DIR}"/etcd-healthcheck-client
+  args:
+    executable: /bin/bash
+    chdir: "{{ static.certs.path }}"
+  environment:
+    DIR: "{{ static.certs.path }}"
+  tags: etcd
+- name: cfssl gencert certificates for kubernetes
+  ansible.builtin.shell: |
+    openssl genrsa -out "${DIR}"/sa.key 2048
+    openssl rsa -in "${DIR}"/sa.key -pubout -out "${DIR}"/sa.pub
+
+    cfssl gencert -initca "${DIR}"/kubernetes-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-ca
+    cfssl gencert -initca "${DIR}"/kubernetes-front-proxy-ca-csr.json | cfssljson -bare "${DIR}"/kubernetes-front-proxy-ca
+
 
     # k8s apiserver
     cfssl gencert -ca="${DIR}"/kubernetes-ca.pem -ca-key="${DIR}"/kubernetes-ca-key.pem --config="${DIR}"/kubernetes-ca-config.json -profile=server    "${DIR}"/apiserver-csr.json | cfssljson -bare "${DIR}"/apiserver
@@ -84,9 +93,4 @@
   #failed_when: false
   environment:
     DIR: "{{ static.certs.path }}"
-  run_once: true
-  register: ps
-- debug: var=ps.stdout_lines
-
-
-
+  tags: kubernetes
