@@ -56,6 +56,11 @@ cd ~/.ansible/roles/
 git clone --depth=1 git@github.com:nginxinc/ansible-role-nginx.git
 ```
 
+### ansible execute role from command line
+```bash
+ansible -i inventory/hosts master-1 -m include_role -a name=helm
+```
+
 ## ref
 - <https://github.com/jonashackt/kubernetes-the-ansible-way>
 - <https://github.com/easzlab/kubeasz>
