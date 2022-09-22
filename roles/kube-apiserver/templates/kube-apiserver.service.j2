@@ -9,7 +9,6 @@ ExecStart=/usr/bin/kube-apiserver \
   --allow-privileged=true \
   --anonymous-auth=false \
   --authorization-mode=Node,RBAC \
-  --bind-address={{  ansible_host }} \
   --client-ca-file=/etc/kubernetes/pki/ca.crt \
   --enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeClaimResize,DefaultStorageClass,DefaultTolerationSeconds,NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota,Priority \
   --enable-bootstrap-token-auth=true \
