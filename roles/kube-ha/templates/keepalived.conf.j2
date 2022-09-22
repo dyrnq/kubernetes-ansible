@@ -2,6 +2,14 @@ global_defs {
 	router_id LVS_TEST_1
 }
 
+vrrp_script check_apiserver {
+    script "/etc/keepalived/check_apiserver.sh"
+    interval 2
+    weight -5
+    fall 3
+    rise 2
+}
+
 vrrp_instance VI_1 {
 	state MASTER
 	interface {{ iface_name }}
@@ -16,4 +24,7 @@ vrrp_instance VI_1 {
 	virtual_ipaddress {
 		{{ kubernetes.lb.ip }}
 	}
+    track_script {
+       check_apiserver
+    }
 }
