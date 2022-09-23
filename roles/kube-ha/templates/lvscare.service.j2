@@ -17,7 +17,8 @@ ExecStart={{ bindest }}/lvscare care \
     --health-insecure-skip-verify true \
     --health-status 401,403,200,201 \
     --health-schem https
-Restart=on-failure
+Restart=always
+StartLimitInterval=0
 RestartSec=10s
 LimitNOFILE=65536
 

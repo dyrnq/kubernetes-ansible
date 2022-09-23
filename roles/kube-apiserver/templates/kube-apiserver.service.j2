@@ -39,7 +39,8 @@ ExecStart=/usr/bin/kube-apiserver \
   --tls-private-key-file=/etc/kubernetes/pki/apiserver.key \
   --v={{  kubernetes.loglevel }}
 
-Restart=on-failure
+Restart=always
+StartLimitInterval=0
 RestartSec=10s
 LimitNOFILE=65535
 
