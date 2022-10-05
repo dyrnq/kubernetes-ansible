@@ -1,0 +1,33 @@
+---
+- name: Download goproxy
+  get_url:
+    url: "https://github.com/snail007/goproxy/releases/download/v12.1/proxy-linux-amd64.tar.gz"
+    dest: "/tmp"
+    use_proxy: yes
+  environment:
+    https_proxy: "{{ https_proxy }}"
+  tags: install_goproxy
+
+- name: "Install goproxy"
+  unarchive:
+    src: "/tmp/proxy-linux-amd64.tar.gz"
+    dest: "{{ bindest }}"
+    mode: 0750
+    remote_src: yes
+    owner: root
+    group: root    
+    extra_opts:
+    - "proxy"
+  tags: install_goproxy
+
+- name: Create proxy.service unit files
+  template: 
+    src: proxy.service.j2
+    dest: /lib/systemd/system/proxy.service
+
+- name: Enable goproxy
+  systemd:
+    name: proxy
+    state: restarted
+    enabled: yes
+    daemon_reload: yes

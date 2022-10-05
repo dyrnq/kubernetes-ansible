@@ -1,0 +1,22 @@
+[Unit]
+Description=goproxy
+Documentation=https://github.com/snail007/goproxy
+After=network.target
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart={{ bindest }}/proxy http -T tcp \
+{% for item in groups['kube_master'] %}
+    --parent {{hostvars[item].ansible_host}}:6443?w=1 \
+{% endfor %}
+    -t tcp -p:{{ kubernetes.lb.port }}
+
+Restart=always
+StartLimitInterval=0
+RestartSec=10s
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

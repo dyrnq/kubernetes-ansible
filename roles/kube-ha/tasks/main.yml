@@ -13,3 +13,6 @@
 
 - include_tasks: lvscare.yml
   when: kubernetes.lb.mode == "lvscare"
+
+- include_tasks: goproxy.yml
+  when: kubernetes.lb.mode == "goproxy"
