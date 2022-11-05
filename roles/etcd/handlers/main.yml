@@ -17,8 +17,8 @@
   uri:
     url: "https://{{ ansible_default_ipv4.address }}:2379/health"
     validate_certs: no
-    client_cert: "/etc/kubernetes/pki/etcd/healthcheck-client.crt"
-    client_key: "/etc/kubernetes/pki/etcd/healthcheck-client.key"
+    client_cert: "/etc/etcd/pki/healthcheck-client.crt"
+    client_key: "/etc/etcd/pki/healthcheck-client.key"
   register: result
   until: result.status is defined and result.status == 200
   retries: 60

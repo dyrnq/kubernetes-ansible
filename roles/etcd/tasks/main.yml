@@ -43,13 +43,13 @@
     state: directory
   with_items:
     - "/etc/etcd"
-    - "/etc/kubernetes/pki/etcd"
+    - "/etc/etcd/pki"
 
 
 - name: "Distribution certs"
   get_url:
     url: "{{ item.src }}"
-    dest: "/etc/kubernetes/pki/etcd/{{ item.dest }}"
+    dest: "/etc/etcd/pki/{{ item.dest }}"
     owner: etcd
     group: etcd
     mode: 0640
@@ -94,7 +94,7 @@
 
 - name: Check etcd health status
   shell: |
-    {{ bindest }}/etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/healthcheck-client.crt --key /etc/kubernetes/pki/etcd/healthcheck-client.key --endpoints {% for item in groups['etcd'] %}https://{{ hostvars[item].ansible_host }}:2379{{ "," if not loop.last else ""}}{% endfor %} endpoint health | grep healthy | wc -l
+    {{ bindest }}/etcdctl --cacert /etc/etcd/pki/ca.crt --cert /etc/etcd/pki/healthcheck-client.crt --key /etc/etcd/pki/healthcheck-client.key --endpoints {% for item in groups['etcd'] %}https://{{ hostvars[item].ansible_host }}:2379{{ "," if not loop.last else ""}}{% endfor %} endpoint health | grep healthy | wc -l
   register: r_etcd_health
   changed_when: no
 
