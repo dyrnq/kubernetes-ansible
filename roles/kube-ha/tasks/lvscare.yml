@@ -1,7 +1,7 @@
 ---
 - name: Download lvscare
   get_url:
-    url: "https://github.com/dyrnq/lvscare-binary/releases/download/v4.1.3/lvscare-v4.1.3.linux-amd64.tar.gz"
+    url: "https://github.com/dyrnq/lvscare-binary/releases/download/{{lvscare_ver}}/lvscare-{{lvscare_ver}}.linux-amd64.tar.gz"
     dest: "/tmp"
     use_proxy: yes
   environment:
@@ -10,7 +10,7 @@
 
 - name: "Install lvscare"
   unarchive:
-    src: "/tmp/lvscare-v4.1.3.linux-amd64.tar.gz"
+    src: "/tmp/lvscare-{{lvscare_ver}}.linux-amd64.tar.gz"
     dest: "{{ bindest }}"
     owner: root
     group: root
